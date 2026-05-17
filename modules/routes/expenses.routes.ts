@@ -1,49 +1,35 @@
-import express from "express";
-
+import { Router } from "express";
 import Expense from "../../models/Expense";
 
-const router = express.Router();
+const router = Router();
 
-/* GET EXPENSES */
-router.get("/", async (_, res) => {
+router.get("/", async (_req, res) => {
   try {
-    const expenses = await Expense.find().sort({
-      createdAt: -1,
-    });
-
+    const expenses = await Expense.find().sort({ createdAt: -1 });
     res.json(expenses);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch expenses",
-    });
+    console.error("GET /api/expenses error:", error);
+    res.status(500).json({ message: "Failed to fetch expenses" });
   }
 });
 
-/* CREATE EXPENSE */
 router.post("/", async (req, res) => {
   try {
     const expense = await Expense.create(req.body);
-
     res.status(201).json(expense);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to create expense",
-    });
+    console.error("POST /api/expenses error:", error);
+    res.status(500).json({ message: "Failed to create expense" });
   }
 });
 
-/* DELETE EXPENSE */
 router.delete("/:id", async (req, res) => {
   try {
     await Expense.findByIdAndDelete(req.params.id);
-
-    res.json({
-      message: "Expense deleted",
-    });
+    res.json({ message: "Expense deleted" });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to delete expense",
-    });
+    console.error("DELETE /api/expenses error:", error);
+    res.status(500).json({ message: "Failed to delete expense" });
   }
 });
 
