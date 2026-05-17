@@ -3,44 +3,40 @@ import Sale from "../../models/Sale";
 
 const router = express.Router();
 
-/* GET SALES */
-router.get("/", async (_, res) => {
+router.get("/", async (_req, res) => {
   try {
     const sales = await Sale.find().sort({ createdAt: -1 });
-
     res.json(sales);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch sales",
-    });
+    console.error("GET sales error:", error);
+    res.status(500).json({ message: "Failed to fetch sales" });
   }
 });
 
-/* CREATE SALE */
 router.post("/", async (req, res) => {
   try {
-    const sale = await Sale.create(req.body);
+    const sale = new Sale(req.body);
+    const savedSale = await sale.save();
 
-    res.status(201).json(sale);
+    res.status(201).json(savedSale);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to create sale",
-    });
+    console.error("POST sale error:", error);
+    res.status(500).json({ message: "Failed to create sale" });
   }
 });
 
-/* DELETE SALE */
 router.delete("/:id", async (req, res) => {
   try {
-    await Sale.findByIdAndDelete(req.params.id);
+    const deleted = await Sale.deleteOne({ _id: req.params.id });
 
-    res.json({
-      message: "Sale deleted",
-    });
+    if (deleted.deletedCount === 0) {
+      return res.status(404).json({ message: "Sale not found" });
+    }
+
+    return res.json({ message: "Sale deleted" });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to delete sale",
-    });
+    console.error("DELETE sale error:", error);
+    return res.status(500).json({ message: "Failed to delete sale" });
   }
 });
 

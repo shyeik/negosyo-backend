@@ -1,68 +1,67 @@
 import express from "express";
-
 import Inventory from "../../models/Inventory";
 
 const router = express.Router();
 
-/* GET INVENTORY */
-router.get("/", async (_, res) => {
+router.get("/", async (_req, res) => {
   try {
-    const items = await Inventory.find().sort({
-      createdAt: -1,
-    });
-
+    const items = await Inventory.find().sort({ createdAt: -1 });
     res.json(items);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch inventory",
-    });
+    console.error("GET inventory error:", error);
+    res.status(500).json({ message: "Failed to fetch inventory" });
   }
 });
 
-/* CREATE INVENTORY ITEM */
 router.post("/", async (req, res) => {
   try {
-    const item = await Inventory.create(req.body);
+    const item = new Inventory(req.body);
+    const savedItem = await item.save();
 
-    res.status(201).json(item);
+    res.status(201).json(savedItem);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to create inventory item",
-    });
+    console.error("POST inventory error:", error);
+    res.status(500).json({ message: "Failed to create inventory item" });
   }
 });
 
-/* UPDATE STOCK */
 router.patch("/:id/stock", async (req, res) => {
   try {
-    const { stock } = req.body;
+    const stock = Number(req.body.stock);
 
-    const updatedItem = await Inventory.findByIdAndUpdate(
-      req.params.id,
-      { stock },
-      { new: true },
+    if (Number.isNaN(stock) || stock < 0) {
+      return res.status(400).json({ message: "Invalid stock value" });
+    }
+
+    const updated = await Inventory.updateOne(
+      { _id: req.params.id },
+      { $set: { stock } },
     );
 
-    res.json(updatedItem);
+    if (updated.matchedCount === 0) {
+      return res.status(404).json({ message: "Inventory item not found" });
+    }
+
+    const item = await Inventory.findOne({ _id: req.params.id });
+    return res.json(item);
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to update stock",
-    });
+    console.error("PATCH inventory stock error:", error);
+    return res.status(500).json({ message: "Failed to update stock" });
   }
 });
 
-/* DELETE ITEM */
 router.delete("/:id", async (req, res) => {
   try {
-    await Inventory.findByIdAndDelete(req.params.id);
+    const deleted = await Inventory.deleteOne({ _id: req.params.id });
 
-    res.json({
-      message: "Inventory item deleted",
-    });
+    if (deleted.deletedCount === 0) {
+      return res.status(404).json({ message: "Inventory item not found" });
+    }
+
+    return res.json({ message: "Inventory item deleted" });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to delete item",
-    });
+    console.error("DELETE inventory error:", error);
+    return res.status(500).json({ message: "Failed to delete item" });
   }
 });
 
