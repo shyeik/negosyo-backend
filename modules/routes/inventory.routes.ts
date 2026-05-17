@@ -17,7 +17,6 @@ router.post("/", async (req, res) => {
   try {
     const item = new Inventory(req.body);
     const savedItem = await item.save();
-
     res.status(201).json(savedItem);
   } catch (error) {
     console.error("POST inventory error:", error);
@@ -30,7 +29,8 @@ router.patch("/:id/stock", async (req, res) => {
     const stock = Number(req.body.stock);
 
     if (Number.isNaN(stock) || stock < 0) {
-      return res.status(400).json({ message: "Invalid stock value" });
+      res.status(400).json({ message: "Invalid stock value" });
+      return;
     }
 
     const updated = await Inventory.updateOne(
@@ -39,14 +39,15 @@ router.patch("/:id/stock", async (req, res) => {
     );
 
     if (updated.matchedCount === 0) {
-      return res.status(404).json({ message: "Inventory item not found" });
+      res.status(404).json({ message: "Inventory item not found" });
+      return;
     }
 
     const item = await Inventory.findOne({ _id: req.params.id });
-    return res.json(item);
+    res.json(item);
   } catch (error) {
     console.error("PATCH inventory stock error:", error);
-    return res.status(500).json({ message: "Failed to update stock" });
+    res.status(500).json({ message: "Failed to update stock" });
   }
 });
 
@@ -55,13 +56,14 @@ router.delete("/:id", async (req, res) => {
     const deleted = await Inventory.deleteOne({ _id: req.params.id });
 
     if (deleted.deletedCount === 0) {
-      return res.status(404).json({ message: "Inventory item not found" });
+      res.status(404).json({ message: "Inventory item not found" });
+      return;
     }
 
-    return res.json({ message: "Inventory item deleted" });
+    res.json({ message: "Inventory item deleted" });
   } catch (error) {
     console.error("DELETE inventory error:", error);
-    return res.status(500).json({ message: "Failed to delete item" });
+    res.status(500).json({ message: "Failed to delete item" });
   }
 });
 

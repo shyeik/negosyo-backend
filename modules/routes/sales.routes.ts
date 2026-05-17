@@ -17,7 +17,6 @@ router.post("/", async (req, res) => {
   try {
     const sale = new Sale(req.body);
     const savedSale = await sale.save();
-
     res.status(201).json(savedSale);
   } catch (error) {
     console.error("POST sale error:", error);
@@ -30,13 +29,14 @@ router.delete("/:id", async (req, res) => {
     const deleted = await Sale.deleteOne({ _id: req.params.id });
 
     if (deleted.deletedCount === 0) {
-      return res.status(404).json({ message: "Sale not found" });
+      res.status(404).json({ message: "Sale not found" });
+      return;
     }
 
-    return res.json({ message: "Sale deleted" });
+    res.json({ message: "Sale deleted" });
   } catch (error) {
     console.error("DELETE sale error:", error);
-    return res.status(500).json({ message: "Failed to delete sale" });
+    res.status(500).json({ message: "Failed to delete sale" });
   }
 });
 

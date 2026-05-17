@@ -5,51 +5,38 @@ const router = express.Router();
 
 router.get("/", async (_req, res) => {
   try {
-    const expenses = await Expense.find().sort({
-      createdAt: -1,
-    });
-
+    const expenses = await Expense.find().sort({ createdAt: -1 });
     res.json(expenses);
   } catch (error) {
     console.error("GET expenses error:", error);
-
-    res.status(500).json({
-      message: "Failed to fetch expenses",
-    });
+    res.status(500).json({ message: "Failed to fetch expenses" });
   }
 });
 
 router.post("/", async (req, res) => {
   try {
     const expense = new Expense(req.body);
-
-    const savedExpense = await expense.save();
-
-    res.status(201).json(savedExpense);
+    const saved = await expense.save();
+    res.status(201).json(saved);
   } catch (error) {
     console.error("POST expense error:", error);
-
-    res.status(500).json({
-      message: "Failed to create expense",
-    });
+    res.status(500).json({ message: "Failed to create expense" });
   }
 });
 
 router.delete("/:id", async (req, res) => {
   try {
-    const id = req.params.id;
+    const deleted = await Expense.deleteOne({ _id: req.params.id });
 
-    await Expense.findByIdAndDelete(id);
+    if (deleted.deletedCount === 0) {
+      res.status(404).json({ message: "Expense not found" });
+      return;
+    }
 
-    res.json({
-      message: "Expense deleted",
-    });
+    res.json({ message: "Expense deleted" });
   } catch (error) {
     console.error("DELETE expense error:", error);
-
-    res.status(500).json({
-      message: "Failed to delete expense",
-    });
+    res.status(500).json({ message: "Failed to delete expense" });
   }
 });
 
