@@ -10,7 +10,7 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigins = process.env.FRONTEND_URL;
+const allowedOrigins = process.env.CLIENT_ORIGIN;
 
 app.use(
   cors({
