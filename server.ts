@@ -1,8 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
+
 import cors from "cors";
+
 import { connectDB } from "./config/db";
 
 import healthRoutes from "./modules/routes/health.routes";
@@ -11,60 +13,84 @@ import inventoryRoutes from "./modules/routes/inventory.routes";
 import expensesRoutes from "./modules/routes/expenses.routes";
 
 const app = express();
+
 const PORT = process.env.PORT || 8080;
 
+/* =========================
+   DATABASE CONNECTION
+========================= */
+connectDB()
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+  })
+  .catch((error) => {
+    console.error("❌ MongoDB Connection Error:", error);
+  });
+
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: process.env.CLIENT_ORIGIN || "*",
     credentials: true,
   }),
 );
 
 app.use(express.json());
 
+/* =========================
+   ROUTES
+========================= */
 app.use("/api/health", healthRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/expenses", expensesRoutes);
 
-app.get("/", (_req, res) => {
-  res.json({
+/* =========================
+   ROOT ROUTE
+========================= */
+app.get("/", (_req: Request, res: Response) => {
+  res.status(200).json({
     success: true,
     message: "Trackabao backend is running 🚀",
+    mongodb: "Connected",
   });
 });
 
-app.use(
-  (
-    err: Error,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction,
-  ) => {
-    console.error(err.stack);
+/* =========================
+   404 HANDLER
+========================= */
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
-    res.status(500).json({
-      message: "Something went wrong",
-      error: err.message,
-    });
-  },
-);
+/* =========================
+   ERROR HANDLER
+========================= */
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error(err.stack);
 
-const startServer = async () => {
-  try {
-    await connectDB();
+  res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+    error: err.message,
+  });
+});
 
-    if (process.env.NODE_ENV !== "production") {
-      app.listen(PORT, () => {
-        console.log(`🚀 Server running on http://localhost:${PORT}`);
-      });
-    }
-  } catch (error) {
-    console.error("❌ Failed to start server:", error);
-    process.exit(1);
-  }
-};
+/* =========================
+   LOCAL DEVELOPMENT ONLY
+========================= */
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
 
-startServer();
-
+/* =========================
+   EXPORT FOR VERCEL
+========================= */
 export default app;
