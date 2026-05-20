@@ -13,6 +13,7 @@ const inventorySchema = new mongoose_1.default.Schema({
     category: {
         type: String,
         required: true,
+        trim: true,
     },
     price: {
         type: Number,
@@ -23,13 +24,45 @@ const inventorySchema = new mongoose_1.default.Schema({
         type: Number,
         required: true,
         default: 0,
+        min: 0,
     },
     lowStockLevel: {
         type: Number,
         default: 5,
+        min: 0,
+    },
+    // Optional product description
+    description: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    // Product supplier
+    supplier: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    // SKU or product code
+    sku: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true,
+    },
+    // Date item was added/purchased
+    purchaseDate: {
+        type: Date,
+        default: Date.now,
+    },
+    // Inventory status
+    status: {
+        type: String,
+        enum: ["In Stock", "Low Stock", "Out of Stock"],
+        default: "In Stock",
     },
 }, {
     timestamps: true,
 });
-const Inventory = mongoose_1.default.model("Inventory", inventorySchema);
+const Inventory = mongoose_1.default.models.Inventory || mongoose_1.default.model("Inventory", inventorySchema);
 exports.default = Inventory;

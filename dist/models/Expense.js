@@ -21,10 +21,14 @@ const expenseSchema = new mongoose_1.default.Schema({
         required: true,
         min: 0,
     },
-    date: {
+    // Expense Date
+    expenseDate: {
         type: Date,
+        required: true,
         default: Date.now,
     },
-}, { timestamps: true });
+}, {
+    timestamps: true,
+});
 const Expense = mongoose_1.default.models.Expense || mongoose_1.default.model("Expense", expenseSchema);
 exports.default = Expense;

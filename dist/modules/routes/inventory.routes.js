@@ -47,6 +47,23 @@ router.patch("/:id/stock", async (req, res) => {
         res.status(500).json({ message: "Failed to update stock" });
     }
 });
+router.put("/:id", async (req, res) => {
+    try {
+        const updated = await Inventory_1.default.findByIdAndUpdate(req.params.id, req.body, {
+            returnDocument: "after",
+            runValidators: true,
+        });
+        if (!updated) {
+            res.status(404).json({ message: "Inventory item not found" });
+            return;
+        }
+        res.json(updated);
+    }
+    catch (error) {
+        console.error("PUT inventory error:", error);
+        res.status(500).json({ message: "Failed to update inventory item" });
+    }
+});
 router.delete("/:id", async (req, res) => {
     try {
         const deleted = await Inventory_1.default.deleteOne({ _id: req.params.id });
