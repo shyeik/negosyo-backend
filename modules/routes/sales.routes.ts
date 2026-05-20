@@ -24,6 +24,25 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.put("/:id", async (req, res) => {
+  try {
+    const updated = await Sale.findByIdAndUpdate(req.params.id, req.body, {
+      returnDocument: "after",
+      runValidators: true,
+    });
+
+    if (!updated) {
+      res.status(404).json({ message: "Sale not found" });
+      return;
+    }
+
+    res.json(updated);
+  } catch (error) {
+    console.error("PUT sale error:", error);
+    res.status(500).json({ message: "Failed to update sale" });
+  }
+});
+
 router.delete("/:id", async (req, res) => {
   try {
     const deleted = await Sale.deleteOne({ _id: req.params.id });

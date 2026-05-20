@@ -8,22 +8,29 @@ const expenseSchema = new mongoose.Schema(
       enum: ["Supplies", "Utilities", "Rent", "Delivery", "Other"],
       default: "Supplies",
     },
+
     description: {
       type: String,
       required: true,
       trim: true,
     },
+
     amount: {
       type: Number,
       required: true,
       min: 0,
     },
-    date: {
+
+    // Expense Date
+    expenseDate: {
       type: Date,
+      required: true,
       default: Date.now,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
 const Expense =

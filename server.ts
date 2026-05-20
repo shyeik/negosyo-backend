@@ -4,6 +4,8 @@ dotenv.config();
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import http from "http";
+import { Server } from "socket.io";
 
 import healthRoutes from "./modules/routes/health.routes";
 import salesRoutes from "./modules/routes/sales.routes";
@@ -11,24 +13,33 @@ import inventoryRoutes from "./modules/routes/inventory.routes";
 import expensesRoutes from "./modules/routes/expenses.routes";
 
 const app = express();
+
 const PORT = process.env.PORT || 8080;
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+
+const server = http.createServer(app);
+
+export const io = new Server(server, {
+  cors: {
+    origin: CLIENT_ORIGIN,
+    credentials: true,
+  },
+});
 
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    origin: CLIENT_ORIGIN,
     credentials: true,
   }),
 );
 
 app.use(express.json());
 
-/* MongoDB */
 mongoose
   .connect(process.env.MONGO_URI as string)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
-/* Routes */
 app.use("/api/health", healthRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/inventory", inventoryRoutes);
@@ -55,7 +66,7 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 /* Local only */
 if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
   });
 }
